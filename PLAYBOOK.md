@@ -402,7 +402,7 @@ a day for as long as it stays true. The morning digest is the exception.
 | PM due soon / overdue | §6.4 | ✓ | overdue only | ✓ |
 | Document expiring / expired | 30 days before / on the day | ✓ | expired only | ✓ |
 | Low stock | on hand ≤ reorder point | ✓ | | ✓ |
-| Inspection missed | an owed DVIR not done (§6.8) | ✓ | | ✓ |
+| Inspection missed | an owed daily check not done (§6.8) | ✓ | | ✓ |
 | Suspicious inspection | too fast, photo reused, meter backwards or jumped | ✓ | | ✓ |
 | New fault code | telematics DTC | ✓ | if severe | ✓ |
 
