@@ -1311,7 +1311,9 @@ affect:
 
 1. **The asset list.** Every truck, trailer, piece of equipment, power tool,
    ladder and fall-protection kit worth tracking, in the Appendix B sheet.
-   Where does it live today?
+   Where does it live today? Gather it with the Asset List form
+   (`tools/asset-intake/`): a Google Form for phones and computers, and a
+   printable version, asking the same questions.
 2. **CMVs.** Which units are commercial motor vehicles (a GVWR or combined
    rating of 10,001 lb or more; a pickup with a loaded dump trailer often
    counts)? What is the USDOT number? Who is the safety or insurance contact
