@@ -459,6 +459,8 @@ var FOLDER_NAME = 'DB Asset Hub: Asset List';
 var SPEC = __SPEC__;
 
 function buildAssetListForm() {
+  Logger.log('Running as ' + Session.getEffectiveUser().getEmail() +
+    ' (this account owns the form, the Sheet and the folder, and gets the email)');
   var props = PropertiesService.getScriptProperties();
   var existing = props.getProperty('FORM_ID');
   if (existing) {
