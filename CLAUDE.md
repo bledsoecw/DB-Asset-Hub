@@ -16,7 +16,7 @@ goes on a branch with a pull request, and nothing merges without Carl.
 
 ## The other repos this touches
 
-- `bledsoecw/db-crew-app`: the phone half (the Equipo tab, the `as*`
+- `bledsoecw/db-crew-app`: the phone half (the Equipment tab, the `as*`
   forwarders in `apps-script/Code.gs`). Its deploy steps are in
   `apps-script/README.md` and `dbtimeclock-pwa/SETUP.md`.
 - `bledsoecw/DB-Hub`: people and access levels (the `assetHub` column). Read

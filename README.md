@@ -16,7 +16,7 @@ data, the rules, every feature, and the phases that build it, each with
 
 | Half | Who | Where |
 | --- | --- | --- |
-| Field | drivers, crews, mechanics | an **Equipo / Equipment** tab in DB Crew (`bledsoecw/db-crew-app`, `db-crews.web.app`) |
+| Field | drivers, crews, mechanics | an **Equipment** tab in DB Crew (`bledsoecw/db-crew-app`, `db-crews.web.app`) |
 | Desk | office, fleet manager, owners, shop | this repo: Next.js on Vercel at `assets.deitemeyerbrothers.com`, Neon Postgres, private Vercel Blob |
 
 People and access levels come from DB Hub's App access panel (`bledsoecw/DB-Hub`,

@@ -16,7 +16,7 @@ It has two halves:
 
 | Half | Who uses it | Where it lives |
 | --- | --- | --- |
-| **Field**: the mobile intake tool | drivers, crews, mechanics | a new **Equipo / Equipment** tab in **DB Crew** (`db-crews.web.app`), which already installs on iPhone and Android |
+| **Field**: the mobile intake tool | drivers, crews, mechanics | a new **Equipment** tab in **DB Crew** (`db-crews.web.app`), which already installs on iPhone and Android |
 | **Desk**: the management command center | office, fleet manager, owners, the shop | **DB Asset Hub**, a web app at `assets.deitemeyerbrothers.com` |
 
 ---
@@ -46,8 +46,8 @@ stop and ask Carl. Don't work around it.
 2. **The rules live in `src/domain/`** as pure functions with tests (§6). Status,
    PM due dates, approvals, stock and compliance are decided there and nowhere
    else, so the phone, the desk and the crons can never disagree.
-3. **Every crew-facing word exists in Spanish and English** behind DB Crew's
-   ES·EN pill. Spanish leads.
+3. **Every crew-facing word exists in English and Spanish** behind DB Crew's
+   ES·EN pill. English leads (D8).
 4. **A phone never loses work.** Every write goes through DB Crew's outbox with
    a client reference, and the server treats a re-send as the same write.
 5. **Payroll is not ours.** Never create, edit or close a JobTread time entry.
@@ -66,6 +66,9 @@ stop and ask Carl. Don't work around it.
 12. **DB Hub's feed deployment is never `clasp deploy -i`'d.** See
     `bledsoecw/DB-Hub` `CLAUDE.md`. A new version of the feed is cut in the
     editor as operations@, with Who has access set to Anyone.
+13. **Use the design system (§4.11).** Brand tokens and the standard
+    components only: no one-off colors, fonts, icons or widgets. Every desk
+    screen works on a laptop and on a phone.
 
 ---
 
@@ -74,8 +77,8 @@ stop and ask Carl. Don't work around it.
 ```
           FIELD: phones                                    DESK: browsers
  ┌─────────────────────────────────┐          ┌────────────────────────────────────┐
- │ DB Crew PWA, Equipo tab         │          │ DB Asset Hub (Next.js on Vercel)   │
- │ scan QR · checklists · FALLA    │          │ assets.deitemeyerbrothers.com      │
+ │ DB Crew PWA, Equipment tab      │          │ DB Asset Hub (Next.js on Vercel)   │
+ │ scan QR · checklists · FIX      │          │ assets.deitemeyerbrothers.com      │
  │ my repairs · documents          │          │ dashboard · work orders · PM ·     │
  └───────────────┬─────────────────┘          │ parts · reports · checklist builder│
                  │ the phone's own session    └──────────────┬─────────────────────┘
@@ -136,7 +139,7 @@ stop and ask Carl. Don't work around it.
 **D1. The field half is a tab in DB Crew, not a new app.** Carl, 23 Oct 2026:
 *"I want all of this on the crew app. The checkout app is retired."* The crew
 already has DB Crew on their home screens, signed in, with the in-app camera,
-the offline outbox, Spanish and English, dictation and push. A second app
+the offline outbox, English and Spanish, dictation and push. A second app
 would mean a second sign-in and a second icon nobody opens. DB Crew is a PWA,
 so it already covers "runs on iOS and Android": it installs on both from the
 browser. App-store builds aren't planned. If one is ever needed, DB CheckOut's
@@ -181,19 +184,29 @@ stays untouched.
 status, a stock count, a cost or a sign-off on its own. Its provider is chosen
 in Phase 12 by testing on DB's own photos and invoices.
 
-**D8. Spanish first on the phone, English at the desk.** A note dictated in
-Spanish is kept as it was said and also stored in English. The desk shows the
-English, with the original one tap away. Checklist items are written in both
-languages in the builder.
+**D8. English first.** (Carl, 26 Oct 2026.) Every screen leads in English, on
+the phone and at the desk. Spanish stays one tap away: DB Crew's ES·EN pill
+flips the Equipment tab to Spanish for that person, and the phone remembers
+it. A note dictated in Spanish is kept as it was said and also stored in
+English; the desk shows the English, with the original one tap away.
+Checklist items are written in both languages in the builder, English
+first.
 
 **D9. Nothing a DOT auditor could ask for is ever deleted.** Inspections,
 defects, signatures, repair sign-offs and work orders are voided with a
 reason, never deleted. Assets are retired, not removed. See §12.
 
-**D10. Build our own; don't copy Whip Around.** Whip Around is the reference
-for what the system does, not for how it looks. Don't copy its screens,
-wording, icons or name. The phone follows DB Crew's look and the desk follows
-the Production Board's.
+**D10. A polished, branded, enterprise-grade interface.** (Carl, 26 Oct
+2026.) Both halves are designed to the standard of established professional
+desktop and mobile software: their structure, layout, navigation patterns and
+UI/UX quality, carried in Deitemeyer Brothers' own logo, brand colors and
+visual identity (§4.11). It should feel like a commercial product built for
+the company, not a generic website or a basic web form. Other products,
+Whip Around included, are references for patterns and quality only; their
+branding, screens, wording and icons are never copied. Design work changes
+presentation, user experience and interface architecture. Every function,
+business rule and integration in this plan stays as written unless a change
+is asked for explicitly.
 
 ---
 
@@ -212,9 +225,9 @@ the Production Board's.
 | **level** | what a person may do in the Asset Hub, set in DB Hub (§4.3) |
 | **the door** | DB Crew's Apps Script forwarding the phone's calls to `/api/crew/*` (§4.4) |
 
-Which Spanish word the crew uses for "asset" (unidad? equipo?) and what to
-call the tab is the crew's call during the pilot. "Equipo" also means "team",
-so ask before shipping the tab name.
+The Spanish labels for the Equipment tab and for "asset" (unidad? equipo?)
+are settled with the crew in the pilot. "Equipo" also means "team", so ask
+before shipping it.
 
 ---
 
@@ -225,7 +238,7 @@ so ask before shipping the tab name.
 | Repo | Changes |
 | --- | --- |
 | `bledsoecw/DB-Asset-Hub` (this one) | everything new: the desk, the crew API, the database, the crons, the integrations |
-| `bledsoecw/db-crew-app` | the Equipo tab in `dbtimeclock-pwa/public/index.html`; the `as*` forwarders and the level gate in `apps-script/Code.gs`; tests in `apps-script/code-test.mjs` and a new `dbtimeclock-pwa/dev/equipment-test.mjs` |
+| `bledsoecw/db-crew-app` | the Equipment tab in `dbtimeclock-pwa/public/index.html`; the `as*` forwarders and the level gate in `apps-script/Code.gs`; tests in `apps-script/code-test.mjs` and a new `dbtimeclock-pwa/dev/equipment-test.mjs` |
 | `bledsoecw/DB-Hub` | one new entry in `ACCESS_APPS_` (the Asset Hub column), its onboarding task, and a new version of the feed deployment (Phase 1 only) |
 | `bledsoecw/DB-CheckOut` | nothing. Its `auth.ts` (Google sign-in, sessions) and `translate.ts` (Gemini, with model discovery) are copied as starting points |
 | DB Portal (`bledsoecw/db-portal`) | a card linking to the Asset Hub, added by hand after Phase 5 |
@@ -243,12 +256,15 @@ app/
   api/hooks/…          fuel and telematics webhooks (Phase 11)
   q/[tag]/             the sticker landing page; shows no asset data without sign-in
   whoami/              build, commit, who you are, your level and where it came from, what's reachable
+  design/              the living style guide (§4.11), Admin only
 src/
   domain/              the rules (§6): pure functions, no I/O, every one tested
   db/                  Drizzle schema and queries
   auth/                Google sign-in, sessions, levels (feed + ASSET_HUB_ADMINS)
   integrations/        hubFeed, jobtread, mail, ai/, fuel/, telematics/
   pdf/                 sticker sheets, WO sheet, audit packets, quotes and invoices
+  ui/                  the app shell and the standard components (§4.11)
+  styles/              the DB design tokens as CSS variables and the Tailwind theme
 drizzle/               SQL migrations, committed
 test/                  node:test units and route tests with fakes; test/db/ against a Neon branch
 e2e/                   Playwright desk flows
@@ -261,13 +277,16 @@ dnd-kit (kanban and builder drag-and-drop); Recharts (charts);
 react-grid-layout (custom dashboards); pdf-lib (PDFs; DB Hub already uses it);
 `qrcode` (sticker QR codes); exceljs (Excel exports); pdf.js in the browser
 (PDF page images); Zod (validating every request body and every AI answer).
+For the interface (§4.11): shadcn/ui (Radix primitives and Tailwind CSS,
+themed with the DB tokens, including its command palette and toasts);
+TanStack Table; react-hook-form; Lucide icons.
 
 ### 4.3 Who can do what
 
 The level comes from DB Hub's App access panel, **Asset Hub** column (key
 `assetHub` on the feed). Blank means the default for a company account.
 
-| Level | On the phone (Equipo tab) | At the desk |
+| Level | On the phone (Equipment tab) | At the desk |
 | --- | --- | --- |
 | *(blank)*: everyone | scan, inspect, report a problem, acknowledge repairs, see status, documents | no access: the sign-in says "ask the office" |
 | **View** | same as blank | everything read-only: dashboard, feed, assets, WOs, reports, exports |
@@ -317,7 +336,7 @@ How the server answers:
 | Answer | Meaning | What the phone does |
 | --- | --- | --- |
 | 200 | done. A re-send with the same `X-Client-Ref` gets the first answer again, with `duplicate: true` | clears it from the outbox |
-| 400 | refused, and it would be refused again; `error` gives the reason in EN and ES | keeps it as **rechazado / rejected** with the reason, and lets the person discard it |
+| 400 | refused, and it would be refused again; `error` gives the reason in EN and ES | keeps it as **rejected** with the reason, and lets the person discard it |
 | 401 / 403 | wrong secret / level | shows the reason; doesn't retry |
 | 404 | unknown asset or WO | rejected |
 | 409 | not yet (e.g. a photo the inspection names hasn't landed) | retries |
@@ -455,7 +474,7 @@ everyday knobs.
 | `npm run e2e` | Playwright on the desk, with a test sign-in that only exists when `NODE_ENV=test` |
 | `npm run typecheck`, `npm run lint` | strict TypeScript, ESLint |
 | DB Crew: `node apps-script/code-test.mjs` | the `as*` forwarders and the level gate (extend the existing file) |
-| DB Crew: `node dev/equipment-test.mjs` | the Equipo tab end to end against `dev/mock.js`, like `closeout-test.mjs` |
+| DB Crew: `node dev/equipment-test.mjs` | the Equipment tab end to end against `dev/mock.js`, like `closeout-test.mjs` |
 
 Shipping:
 
@@ -473,6 +492,98 @@ Shipping:
   who you are, your level and where it came from, and whether the database,
   Blob, the feed, JobTread and Gmail are reachable. That is DB Hub's
   `?whoami=1` habit.
+
+### 4.11 The interface: design system and layout
+
+The bar is D10: both halves look and work like a commercial product built for
+Deitemeyer Brothers, at the standard of established enterprise desktop and
+mobile software.
+
+**The brand already exists.** The Deitemeyer Brothers design system was
+rebuilt in July 2026 from the company's live tools (the Sales & Operations
+Dashboard, DB Cam, the Team Portal). A snapshot sits in `bledsoecw/db-crew-app`
+under `project/_ds/deitemeyer-brothers-design-system-d0550d2f-…/` (tokens,
+logo rules, component inventory). Phase 1 copies its tokens into this repo as
+the one source, after checking Claude Design for a newer export. Nothing in
+the Asset Hub uses a framework's default colors, fonts, logo or favicon.
+
+| Token | Value | Used for |
+| --- | --- | --- |
+| Primary | navy `#1A4789` (`--navy-700`) | buttons, links, headers, focus. The sidebar rail is `--navy-800` `#142A52` |
+| Accent | electric green `#3CC84A` (`--green-500`) | live, positive or on-goal, and the one emphasized word in a label. Never a primary action |
+| Surfaces | app background slate `#F4F6F9`, cards white, hairlines `#D8DFE8` | every Asset Hub screen. Warm cream is for customer-facing pages only |
+| Status | success `#29A03D`, warning `#B5892A`, danger `#C0392B`, info `#21569F`, idle `#9A9285` | asset and WO status, alerts, PM states |
+| Type | Archivo (uppercase headings; metrics with tabular figures), Barlow (body and UI), IBM Plex Mono (labels, table headers, tags, timestamps) | everything |
+| Icons | Lucide line icons, one set | everything |
+| Shape and motion | radius 3 / 5 / 8 px, 1 px hairlines, little shadow, 120–320 ms transitions | everything |
+| Logo | the DB wordmark, on a white plaque on navy; never redrawn or recolored | sidebar, sign-in, emails, PDFs, sticker sheets |
+
+Status colors: Safe is success; Defects and Due soon are warning; Out of
+service and Overdue are danger; Retired is idle. A status chip always carries
+an icon and a word as well as its color.
+
+The wordmark's typefaces are proprietary, so the system substitutes Google
+Fonts (Archivo, Barlow, IBM Plex Mono) until Carl sends the real files (Phase
+0, question 11).
+
+**Desktop first: the app shell.** Designed at 1440 × 900 first, then 1024,
+tablet (768) and phone (390). Frequent jobs are one click from anywhere: the
+sidebar, Ctrl+K and the New menu.
+
+- **Sidebar:** the navy rail (the design system's `SideNav`), always there:
+  the logo plaque on top; grouped items with icons: *Operate* (Dashboard,
+  Assets, Inspections, Defects, Work orders), *Maintain* (Maintenance, Parts,
+  Fuel), *Analyze* (Reports, Dashboards, Exports); Settings and the signed-in
+  person at the foot. It collapses to icons and remembers the choice. The
+  active item has the green left bar.
+- **Top toolbar:** the page title and breadcrumbs; global search (**Ctrl+K**,
+  a command palette that jumps to an asset tag, a WO number, a person or a
+  page); **New** (work order, asset, checklist, part); the alerts bell with
+  its count; the user menu.
+- **The page:** a header with the title, one primary action and the rest in a
+  "…" menu; a filter bar; then panels. Selecting a row opens its detail in a
+  right-hand drawer, so the list stays in view. Only deep work (the checklist
+  builder, the kanban, reports) takes a full page.
+- **Density:** comfortable table rows by default, with a compact toggle.
+
+**Mobile and tablet.** Below tablet width the sidebar becomes a bottom tab bar
+(Dashboard, Assets, Work orders, Alerts, More), tables become card lists with
+the same search and filters, drawers and dialogs become full-screen sheets,
+the kanban shows one lane at a time with a lane switcher, and every touch
+target is at least 44 px.
+
+**The Equipment tab in DB Crew** is a native-app-style screen inside DB Crew's
+own shell, whose bottom tabs stay as they are: a top bar with search, a
+floating Scan button, cards, bottom sheets for actions, and glove-sized
+targets. It uses the same brand tokens, copied into DB Crew as CSS variables
+(DB Crew is one HTML file with no build step, so it can't use the React
+components). Restyling the rest of DB Crew is not part of this build unless
+Carl asks.
+
+**The standard components** are built once with shadcn/ui (Radix primitives
+and Tailwind CSS) themed with the DB tokens, with the design system's own
+pieces (`SideNav`, `PanelHeader`, `DataTable`, `Badge`, `Stat`, `MetricStrip`,
+`KpiBanner`) rebuilt on top:
+
+| Pattern | Standard |
+| --- | --- |
+| Tables | TanStack Table: search, column filters, sort, show/hide columns, saved views per person, a row "…" menu and right-click menu, multi-select with bulk actions, CSV export, sticky header, virtual scrolling for long lists |
+| Forms | react-hook-form with Zod; labels above fields, inline errors, required fields marked; short forms in a dialog, long ones in a drawer; a warning before leaving unsaved changes |
+| Dialogs | a confirmation for anything permanent (void, cancel, retire) that says what will happen |
+| Notifications | a toast for the result of each action, with Undo where it can be undone; the bell for alerts (§4.8); a banner for system state (feed down, an integration failing) |
+| Status | chips with icon, word and color |
+| Empty, loading, error | every list says what to do when it's empty, shows skeletons while loading, and offers Retry on an error |
+| Dashboards | interactive: hover for values; click a tile, bar or row to filter; the date range in the toolbar |
+| Keyboard | Ctrl+K search, `/` to focus the page's search, Esc to close, arrow keys in tables, a visible focus ring |
+
+**Quality bar:** WCAG 2.1 AA contrast (green text uses `--green-700` on light
+surfaces, per the design system), everything reachable by keyboard, usable at
+200% zoom, and no layout jump while loading. Emails, the WO sheet, audit
+packets, quotes and invoices, and sticker sheets carry the same brand.
+
+**The living style guide:** `/design` (Admin only) shows every token and
+component in the brand. Phase 1 builds it, every later phase keeps it
+current, and the e2e tests screenshot it.
 
 ---
 
@@ -760,42 +871,42 @@ per mile = total ÷ miles in range;  per hour = total ÷ hours in range   (from 
 
 ---
 
-## 7. Field features: DB Crew's Equipo tab
+## 7. Field features: DB Crew's Equipment tab
 
 The tab is there for every role (crew, site manager, service, manager,
 operations), as long as `ASSET_HUB_URL` is set and the person's level isn't
-Off. Its home screen has:
+Off. The labels below are the English ones, which lead (D8). Each has a
+Spanish twin behind DB Crew's ES·EN pill, the way Close Out's OK / FIX is
+BIEN / FALLA. Its home screen has:
 
-- a big **Escanear / Scan** button and a search box (tag or name);
-- **Mis unidades / My assets** (assigned to me), each card showing the tag
-  large, the name, a status chip (green **Bien / Safe**, amber **Con fallas /
-  Defects**, red **Fuera de servicio / Out of service**) and "inspected today
-  ✓" or "pre-trip owed";
-- **Recientes / Recent**;
-- for Mechanic and up, **Mis reparaciones / My repairs (3)**.
+- a big **Scan** button and a search box (tag or name);
+- **My assets** (assigned to me), each card showing the tag large, the name, a
+  status chip (green **Safe**, amber **Defects**, red **Out of service**) and
+  "inspected today ✓" or "pre-trip owed";
+- **Recent**;
+- for Mechanic and up, **My repairs (3)**.
 
 ### 7.1 Inspection and DVIR intake
 
 **Dynamic checklist execution**
 
 - An asset's card shows its checklists. The asset's own target comes first,
-  then its category's. The main button is the one owed now: "Revisión diaria /
-  Daily check", or the pre-trip on a CMV. A 10-point roofing trailer check, a
-  5-point generator check and the DOT pre-trip are just different checklists
+  then its category's. The main button is the one owed now: **Daily check**,
+  or the pre-trip on a CMV. A 10-point roofing trailer check, a 5-point
+  generator check and the DOT pre-trip are just different checklists
   (Appendix A).
-- One item per row with big **BIEN / FALLA** (OK / FIX) buttons, as Close
-  Out's checklist has. N/A shows where the builder allows it. Choice, number
-  and text inputs are inline. Required items are marked, and progress shows as
-  "7 de 10".
+- One item per row with big **OK / FIX** buttons, as Close Out's checklist
+  has. N/A shows where the builder allows it. Choice, number and text inputs
+  are inline. Required items are marked, and progress shows as "7 of 10".
 - A pre-trip opens with the acknowledgment step if one is owed (below).
-- A DVIR ends with a finger signature; other checklists just **Enviar / Send**.
+- A DVIR ends with a finger signature; other checklists just **Send**.
 
 **Mandatory photo capture and fraud prevention**
 
 - An item with `photo: "required"` opens DB Crew's in-app camera, with no From
   my photos button. The photo is stamped (§4.6). The server refuses a phone
   photo for that item even if one is forced through.
-- `on_fail` photos are asked for only when FALLA is tapped.
+- `on_fail` photos are asked for only when FIX is tapped.
 - The desk flags `too_fast`, `photo_reused`, `meter_backwards` and
   `meter_jump` inspections (§6.2), and FleetAI later checks the photos
   themselves (§9.2).
@@ -806,99 +917,97 @@ Off. Its home screen has:
 **QR asset identification**
 
 - The sticker is a QR code of `https://assets.deitemeyerbrothers.com/q/TRL-03`,
-  with the tag in big letters and "Escanee con DB Crew / Scan with DB Crew".
+  with the tag in big letters and "Scan with DB Crew" (with a Spanish line
+  under it).
 - The in-app scanner uses `BarcodeDetector` where the browser has it (Chrome on
   Android). Elsewhere (iPhone Safari) it uses jsQR, vendored as one file the
   way DB Hub vendors pdf-lib. The scan resolves from the boot pack instantly
-  and opens the asset's card with **Empezar revisión / Start inspection**.
-- **From the phone's own camera app,** `/q/TRL-03` offers "Abrir en DB Crew /
-  Open in DB Crew", a link to DB Crew with `?asset=TRL-03`, which DB Crew
-  reads on open. On Android an installed DB Crew opens. On iPhone the link
-  opens Safari, which isn't the home-screen app (iOS keeps them apart), so the
-  crew is taught the in-app Scan button. The `/q` page shows no asset data to
-  anyone who isn't signed in.
+  and opens the asset's card with **Start inspection**.
+- **From the phone's own camera app,** `/q/TRL-03` offers **Open in DB Crew**,
+  a link to DB Crew with `?asset=TRL-03`, which DB Crew reads on open. On
+  Android an installed DB Crew opens. On iPhone the link opens Safari, which
+  isn't the home-screen app (iOS keeps them apart), so the crew is taught the
+  in-app Scan button. The `/q` page shows no asset data to anyone who isn't
+  signed in.
 - A damaged sticker: type the tag.
 
 **Odometer and engine hour log**
 
 - An asset whose category has a meter asks for the odometer, the hours or
-  both before Send, prefilled with the last reading ("Último: 84,212 · 24 oct")
+  both before Send, prefilled with the last reading ("Last: 84,212 · Oct 24")
   to confirm or retype.
 - With "verify with photo" on (the default for trucks and generators), a camera
   photo of the dash or hour meter is required.
-- Going backwards asks "¿Seguro? La última lectura era mayor / Sure? The last
-  reading was higher" and sends it with a flag. The crew is never blocked.
+- Going backwards asks "Sure? The last reading was higher" and sends it with a
+  flag. The crew is never blocked.
 
 **Next driver's acknowledgment** (49 CFR 396.13, §12)
 
 - If a defect on this asset was repaired since this person last inspected it,
-  the pre-trip's first screen lists it ("Luz trasera, reparada por Juan, 25
-  oct / Rear light, repaired by Juan, Oct 25") with a checkbox and a
-  signature, stored in `acknowledgments`.
+  the pre-trip's first screen lists it ("Rear light, repaired by Juan, Oct
+  25") with a checkbox and a signature, stored in `acknowledgments`.
 
 ### 7.2 Field defect and failure reporting
 
 **Instant fail categorization**
 
-- **FALLA** opens the defect sheet inline: photos, a note, and **¿Se puede
-  usar? / Safe to use?** (yes/no). Severity comes from the item, and "no"
-  raises it to out of service.
+- **FIX** opens the defect sheet inline: photos, a note, and **Safe to use?**
+  (yes/no). Severity comes from the item, and "no" raises it to out of
+  service.
 - On Send, the server sets the asset's status in the same transaction (§6.1)
-  and answers with it. The phone shows the banner ("TRL-03 está FUERA DE
-  SERVICIO, no lo use. La oficina ya sabe. / TRL-03 is OUT OF SERVICE, don't
-  use it. The office has been told.") and updates its cache. The desk feed and
-  tiles show it on the next poll (≤ 15 s), and an OOS sends the instant email.
+  and answers with it. The phone shows the banner ("TRL-03 is OUT OF SERVICE.
+  Don't use it. The office has been told.") and updates its cache. The desk
+  feed and tiles show it on the next poll (≤ 15 s), and an OOS sends the
+  instant email.
 - **"Immediately" means the moment the phone has signal.** Offline, that phone
-  shows the asset as OOS at once and says "Se enviará al tener señal / Sends
-  when there's signal". Other phones learn when it lands.
+  shows the asset as OOS at once and says "Sends when there's signal". Other
+  phones learn when it lands.
 - An out-of-service asset shows a red banner to everyone who opens or scans
   it: since when, by whom and why.
-- **Reportar problema / Report a problem** on the asset's card opens the same
-  sheet without a checklist (`source: report`).
+- **Report a problem** on the asset's card opens the same sheet without a
+  checklist (`source: report`).
 
 **Visual evidence uploader**
 
 - Up to six photos per defect (a setting), from the camera or From my photos.
   Phone photos get the PHONE badge and their EXIF time (DB Crew T2.9).
-- **Marcar / Mark up:** tap a photo and draw with a finger (circle, arrow,
-  freehand) in red or yellow, with Undo and Done. The marked copy is a new
-  photo, and the original is kept (§4.6).
+- **Mark up:** tap a photo and draw with a finger (circle, arrow, freehand) in
+  red or yellow, with Undo and Done. The marked copy is a new photo, and the
+  original is kept (§4.6).
 - **The note:** typed, or dictated with the mic DB Crew's day log already uses
   (`SpeechRecognition` where the phone has it; the keyboard's mic where it
-  doesn't), in Spanish, English or a mix. It is sent as said plus English
-  (`asTranslate` → the Asset Hub's translate, from DB CheckOut's
-  `translate.ts`). The crew sees the English before sending, as in Close Out's
-  area note.
+  doesn't), in English, Spanish or a mix. A note not in English is sent as
+  said plus English (`asTranslate` → the Asset Hub's translate, from DB
+  CheckOut's `translate.ts`), and the crew sees the English before sending, as
+  in Close Out's area note.
 
 ### 7.3 Mechanic mobile workflow
 
-**Digital assignment clipboard: Mis reparaciones / My repairs** (Mechanic+)
+**Digital assignment clipboard: My repairs** (Mechanic+)
 
 - Shows the WOs assigned to me in Scheduled, In progress or On hold, sorted by
   due date then priority. Each shows the WO number, the asset's tag and name,
   what's wrong, when it's due, its status and any parts set aside for it.
-- The WO screen has the defects with their photos and notes (in the
-  mechanic's language, with the original), the history, the parts on it, the
-  files (view only) and the timer.
-- **Timer:** Empezar / Pausa / Seguir (Start / Pause / Resume). One runs at a
-  time per mechanic; starting another pauses this one. The times are taken on
-  the phone and sent through the outbox, so it works offline.
+- The WO screen has the defects with their photos and notes (in English, or in
+  Spanish on that person's pill, with the original), the history, the parts on
+  it, the files (view only) and the timer.
+- **Timer:** Start / Pause / Resume. One runs at a time per mechanic; starting
+  another pauses this one. The times are taken on the phone and sent through
+  the outbox, so it works offline.
 - **Parts used:** search the shelf and enter a quantity. The stock is deducted
   when it lands (Phase 8; before that, a free-text "parts used" line). Notes
   can be typed or dictated.
 
 **Digital mechanic sign-off**
 
-- **Terminar y firmar / Finish & sign:** each defect is marked Reparado /
-  Repaired or No hacía falta / Not needed (which needs a note). The mechanic
-  enters the meters at close (prefilled), at least one after photo, a
-  completion note and a finger signature.
+- **Finish & sign:** each defect is marked Repaired or Not needed (which needs
+  a note). The mechanic enters the meters at close (prefilled), at least one
+  after photo, a completion note and a finger signature.
 - The server completes the WO, resolves its defects and recomputes the status,
   so the asset turns green if nothing else is open. This record is the DOT
   repair certification (§12).
-- **The answer comes from the server, never a guess.** "TRL-03 vuelve a
-  servicio / TRL-03 is back in service" shows only when the server says so
-  (DB Crew's T2.8.3 habit).
+- **The answer comes from the server, never a guess.** "TRL-03 is back in
+  service" shows only when the server says so (DB Crew's T2.8.3 habit).
 
 **Photo proof of resolution**
 
@@ -906,17 +1015,16 @@ Off. Its home screen has:
   after the WO was opened (DB Crew's AFTER rule). They are stamped and shown
   beside the before photos on the desk and in the audit packet.
 
-### 7.4 The wallet: Documentos / Documents
+### 7.4 The wallet: Documents
 
 - An asset's card lists its documents marked `in_wallet`: registration,
   insurance card, permits, the annual inspection report, the cab card. Each
-  has an expiry chip ("vence 3 nov / expires Nov 3"), red once expired.
-- **Mostrar al oficial / Show the officer:** full screen with a brightness
-  hint, pinch to zoom, swipe between documents, and nothing else on screen.
+  has an expiry chip ("expires Nov 3"), red once expired.
+- **Show the officer:** full screen with a brightness hint, pinch to zoom,
+  swipe between documents, and nothing else on screen.
 - **Offline:** the documents for the person's assigned assets and the last
   five they opened are kept on the phone as page images (§4.6) and say
-  "Disponible sin señal / Available offline". A roadside stop is often where
-  the signal isn't.
+  "Available offline". A roadside stop is often where the signal isn't.
 - An expired document still shows (the newer paper copy might be in the glove
   box), but in red, and the desk was warned 30 days before.
 - Driver documents (CDL, medical card) are HR papers and belong in DB Hub's
@@ -926,7 +1034,7 @@ Off. Its home screen has:
 
 ## 8. Desk features: DB Asset Hub
 
-The navigation: Dashboard · Assets · Inspections · Defects · Work orders ·
+The sidebar (§4.11): Dashboard · Assets · Inspections · Defects · Work orders ·
 Maintenance · Parts · Fuel · Reports · Settings (checklists, categories, teams,
 people and limits, vendors, alerts, integrations, FleetAI).
 
@@ -1015,8 +1123,8 @@ opens itself and lands as §6.6 says. Completing it resets the baseline (§6.4).
   Number, Meter (odometer/hours), Photo, Text, Signature, Section header.
 - **Middle:** the checklist. Drag items in, drag to reorder, click to edit
   (dnd-kit).
-- **Right:** the item's properties: Spanish and English labels with a
-  **Traducir / Translate** button that fills the empty one for a person to
+- **Right:** the item's properties: English and Spanish labels with a
+  **Translate** button that fills the empty one for a person to
   check, plus required, N/A allowed, photo rule, comment rule, fail severity,
   choices (and which ones fail), and min/max.
 - **Preview** as the phone will show it, with an ES/EN toggle.
@@ -1226,6 +1334,10 @@ affect:
    inspection report for each vehicle, scanned or photographed.
 10. **Sticker stock.** Outdoor laminated vinyl labels or a label printer. Pick
     after printing a test sheet in Phase 1.
+11. **The brand.** The DB design system (§4.11: navy, electric green, Archivo,
+    Barlow, IBM Plex Mono, Lucide icons) is the starting point. Confirm it,
+    and send the logo as SVG and the wordmark's real font files if you have
+    them.
 
 ### Phase 1: Foundation
 
@@ -1243,6 +1355,11 @@ affect:
 
 **Build: Asset Hub**
 
+- **The design system and the app shell first** (§4.11): the DB tokens as CSS
+  variables and the Tailwind theme; shadcn/ui themed with them; the shell
+  (sidebar, toolbar, the phone's bottom bar); the standard table, form,
+  dialog, toast, and empty, loading and error states; DB-branded sign-in,
+  favicon, email and PDF templates; and `/design`, the living style guide.
 - Next.js (App Router) with strict TypeScript, Drizzle, and the first
   migration: `people`, `teams`, `settings`, `audit_log`, `asset_categories`,
   `assets`, `asset_status_log`, `meter_readings`, `files`.
@@ -1272,6 +1389,9 @@ affect:
 
 **Done when**
 
+- Carl has approved the shell and `/design` on a laptop and a phone, in the DB
+  brand, before any feature is built on them. The asset list uses the
+  standard table: search, filters, saved views, the row menu.
 - Carl signs in at `assets.deitemeyerbrothers.com`, and `/whoami` shows Admin
   (seeded) and the feed's level.
 - A Gmail address not on the allow-list is refused. Setting someone's Asset Hub
@@ -1285,8 +1405,9 @@ affect:
 **Kickoff prompt**
 
 > Phase 1 of DB Asset Hub. Read `PLAYBOOK.md` in `bledsoecw/DB-Asset-Hub`
-> (the rules, §2–§6, Phase 1 and Appendices B and C) and `CLAUDE.md` in
-> `bledsoecw/DB-Hub`. Build Phase 1 in DB-Asset-Hub, and the `assetHub` access
+> (the rules, §2–§6 including §4.11, Phase 1 and Appendices B and C), the DB
+> design system in `bledsoecw/db-crew-app` under `project/_ds/`, and
+> `CLAUDE.md` in `bledsoecw/DB-Hub`. Build Phase 1 in DB-Asset-Hub, and the `assetHub` access
 > column in DB-Hub, each on its own branch with a pull request. Tests as §4.10
 > says. Don't deploy anything; list the deploy steps for Carl at the end.
 
@@ -1300,8 +1421,8 @@ affect:
 - The door (§4.4): `CREW_APP_SECRET`, the `X-Acting-*` headers, levels, and
   idempotency on `X-Client-Ref`. Routes: `boot`, `assets/:tag`, `photos`,
   `inspections`.
-- `src/domain`: taking an inspection in (§6.2, without defects yet; a FALLA is
-  stored as an answer) and meters (§6.3), with tests.
+- `src/domain`: taking an inspection in (§6.2, without defects yet; a failed item
+  is stored as an answer) and meters (§6.3), with tests.
 - Desk: the inspections list and detail (the first form of the feed).
 
 **Build: DB Crew**
@@ -1309,17 +1430,19 @@ affect:
 - Script: `asBoot`, `asAsset`, `asPhoto`, `asInspect` over an `asFetch_` copied
   from `coFetch_`; Script Properties `ASSET_HUB_URL` and `ASSET_HUB_SECRET`;
   the level gate; cases in `code-test.mjs`.
-- PWA: the Equipo tab for every role (hidden until `ASSET_HUB_URL` is set); the
+- PWA: the Equipment tab for every role, in the DB brand tokens (§4.11),
+  hidden until `ASSET_HUB_URL` is set; the
   boot pack cache; the scanner (`BarcodeDetector`, vendored jsQR, typed tag);
   the asset card; the checklist runner for every item type; camera-only
   required photos with the stamp; meters and the meter photo; the signature
-  pad; outbox order (photos, then the inspection); ES/EN strings;
+  pad; outbox order (photos, then the inspection); EN/ES strings, English
+  first;
   `dev/mock.js` additions; `dev/equipment-test.mjs`.
 
 **Done when**
 
 - On a real Android phone **and** a real iPhone: scan TRL-03's sticker from the
-  Equipo tab, do the 10-point check in airplane mode, turn airplane mode off,
+  Equipment tab, do the 10-point check in airplane mode, turn airplane mode off,
   and the inspection lands on the desk with its stamped photos within a
   minute.
 - The tire item can't be passed with a gallery photo. There's no button, and a
@@ -1331,11 +1454,11 @@ affect:
 
 **Kickoff prompt**
 
-> Phase 2 of DB Asset Hub. Read `PLAYBOOK.md` (the rules, §4.4–§4.6, §5, §6.2,
+> Phase 2 of DB Asset Hub. Read `PLAYBOOK.md` (the rules, §4.4–§4.6, §4.11, §5, §6.2,
 > §6.3, §7.1, §8.4, Phase 2, Appendices A and C) and `docs/CREW-API.md` in
 > `bledsoecw/DB-Asset-Hub`, and Close Out in `bledsoecw/db-crew-app`
 > (`coFetch_` in `apps-script/Code.gs`, its tab in
-> `dbtimeclock-pwa/public/index.html`, `dev/closeout-test.mjs`): the Equipo
+> `dbtimeclock-pwa/public/index.html`, `dev/closeout-test.mjs`): the Equipment
 > tab follows the same patterns. Build Phase 2 in both repos, one branch and
 > PR each, with tests. No deploys.
 
@@ -1364,7 +1487,7 @@ affect:
 
 **Done when**
 
-- FALLA on tires with "not safe" puts TRL-03 out of service on the desk within
+- FIX on tires with "not safe" puts TRL-03 out of service on the desk within
   15 seconds of the phone sending. A second phone scanning it sees the red
   banner, and the email arrives.
 - Dismissing that defect on the desk turns TRL-03 Safe.
@@ -1474,7 +1597,7 @@ WO completion or an inspection resetting the baseline.
 
 **Build:** `asset_documents`; desk upload with pdf.js page images, expiry
 dates and the `in_wallet` toggle; expiry alerts in the daily cron. In DB Crew:
-`asDoc`, the Documentos list on the asset's card, Show the officer, and the
+`asDoc`, the Documents list on the asset's card, Show the officer, and the
 offline cache (§7.4).
 
 **Done when**
@@ -1584,7 +1707,7 @@ interface.
 
 - The comparison is written up with accuracy, cost and time per task, and
   Carl has picked.
-- A photo of a bulging sidewall that was marked BIEN gets a ⚑ on the desk
+- A photo of a bulging sidewall that was marked OK gets a ⚑ on the desk
   within a minute.
 - A real vendor invoice pre-fills a WO's lines correctly, and nothing is
   posted until a person confirms.
@@ -1609,8 +1732,9 @@ interface.
   on trucks, the tongue on trailers, the handle or frame on equipment, the
   label pouch or a tag on a harness. Use durable outdoor labels, and redo any
   that won't scan.
-- **Training:** a ten-minute tailgate demo in Spanish and a one-page card
-  (ES/EN): *Escanear → Revisar → Enviar / Scan → Check → Send*. In the first
+- **Training:** a ten-minute tailgate demo, in English and again in Spanish
+  for whoever wants it (showing the ES·EN pill), and a one-page card (EN/ES):
+  *Scan → Check → Send / Escanear → Revisar → Enviar*. In the first
   week the office checks the live feed every morning and calls whoever is
   missing.
 - **Go-live:** every asset stickered and compliance reviewed weekly. Paper DVIR
@@ -1633,7 +1757,7 @@ on each asset decides which ones need the DVIR flow.
 | 49 CFR 396.13 | before driving, review the last report and sign that the repairs were done | the acknowledgment step (§7.1) |
 | 49 CFR 396.3 | inspection, repair and maintenance records per vehicle; kept a year, and 6 months after it leaves the fleet | WO, PM and inspection history; assets are retired, not deleted |
 | 49 CFR 396.17 / 396.21 | a periodic (annual) inspection; keep the report 14 months | a 365-day PM schedule plus the `annual_inspection` document kind |
-| OSHA 1926.502(d)(21) | personal fall arrest systems inspected before each use | the fall-protection checklist, each use; any FALLA is out of service |
+| OSHA 1926.502(d)(21) | personal fall arrest systems inspected before each use | the fall-protection checklist, each use; any failed item is out of service |
 | OSHA 1926.1053(b)(15) | ladders inspected periodically and after anything that could affect safe use | the ladder checklist and a 90-day PM |
 
 396.11 asks for the report at the end of each day's work. Most fleets run the
@@ -1648,7 +1772,7 @@ code changes.
 
 | Risk | Plan |
 | --- | --- |
-| The crew doesn't use it | it's in the app they already have, Spanish first, a check takes about a minute, the leaderboards, and a pilot first |
+| The crew doesn't use it | it's in the app they already have, English first with Spanish one tap away, a check takes about a minute, the leaderboards, and a pilot first |
 | No signal | the outbox, the cached boot pack, documents on the phone |
 | Pencil-whipping | camera-only required photos, the stamp, the fingerprint, timing, meter checks, and later FleetAI's photo check |
 | iPhone's camera app opens Safari, not DB Crew | teach the in-app Scan button; tags are typeable |
@@ -1665,8 +1789,8 @@ code changes.
 
 ## Appendix A: seed checklists
 
-Starting points that Carl edits in the builder. **OOS** means a FALLA puts the
-asset out of service, and *photo* means a camera photo is required.
+Starting points that Carl edits in the builder. **OOS** means a failed item (FIX)
+puts the asset out of service, and *photo* means a camera photo is required.
 
 **A1. Truck: DOT pre-trip (DVIR)**, for CMVs, daily, signature and meters required
 1. Service brakes and trailer brake connections (OOS)
@@ -1717,7 +1841,7 @@ leaks; depth adjust; magazine and feed; fitting.
 tar).
 
 **A7. Fall protection: harness, lanyard or SRL, anchor**, before each use;
-every FALLA is OOS: webbing and stitching; D-rings, buckles and hardware;
+every failed item is OOS: webbing and stitching; D-rings, buckles and hardware;
 lanyard or SRL locks and retracts; fall indicator not tripped; labels legible;
 roof anchor sound.
 
