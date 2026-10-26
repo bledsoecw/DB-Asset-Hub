@@ -20,7 +20,7 @@
 var FOLDER_NAME = 'DB Asset Hub: Asset List';
 var SPEC = {
   "title": "DB Asset Hub: Asset List",
-  "description": "One response per asset: every truck, trailer, piece of equipment, power tool, ladder and fall-protection kit we track. After you submit, tap \"Submit another response\" for the next one. Skip anything you don't know; the office fills in the rest.",
+  "description": "One response per asset: every truck, trailer, piece of equipment, power tool, ladder and fall-protection kit we track, and every computer, tablet and phone we issue. After you submit, tap \"Submit another response\" for the next one. Skip anything you don't know; the office fills in the rest.",
   "confirmation": "Saved. Tap \"Submit another response\" for the next asset.",
   "sections": [
     {
@@ -48,7 +48,11 @@ var SPEC = {
             "Roofing nailer or nail gun",
             "Other power tool",
             "Ladder",
-            "Fall protection gear"
+            "Fall protection gear",
+            "Computer or laptop",
+            "Tablet or iPad",
+            "Cell phone",
+            "Other technology"
           ],
           "other": true,
           "required": true
@@ -79,7 +83,7 @@ var SPEC = {
         {
           "type": "text",
           "title": "Who usually drives or uses it",
-          "help": "A name or a company email."
+          "help": "A name or a company email. For a computer, tablet or phone: who it's issued to."
         }
       ]
     },
@@ -104,7 +108,7 @@ var SPEC = {
         {
           "type": "text",
           "title": "VIN or serial number",
-          "help": "A VIN is 17 characters. Copy it exactly."
+          "help": "A VIN is 17 characters. Copy it exactly. Computers, tablets and phones: the serial number is in Settings, under About."
         },
         {
           "type": "text",

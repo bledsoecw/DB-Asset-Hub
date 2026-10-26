@@ -208,13 +208,21 @@ presentation, user experience and interface architecture. Every function,
 business rule and integration in this plan stays as written unless a change
 is asked for explicitly.
 
+**D11. Technology is tracked too.** (Carl, 26 Oct 2026.) Computers, laptops,
+tablets and cell phones the company issues are assets: their own category kind
+(`technology`), a tag, a serial number, who has it, and what it cost. They get
+no checklists or PM by default; the asset list, assignment, documents and cost
+work for them as for anything else. Power tools and any tool worth over $100
+are listed (the person listing uses judgment); every ladder and all
+fall-protection gear is listed whatever it cost.
+
 ---
 
 ## 3. Words used in this file
 
 | Word | Means |
 | --- | --- |
-| **asset** | anything tracked: a truck, trailer, compressor, generator, nailer, ladder, harness. Every asset has a **tag** like `TRL-03` |
+| **asset** | anything tracked: a truck, trailer, compressor, generator, nailer, ladder, harness, laptop, phone. Every asset has a **tag** like `TRL-03` |
 | **category** | the kind of asset (Pickup truck, Dump trailer, Generator…). Checklists, PM and meters hang off it |
 | **team** | the division or crew an asset or person belongs to (Roofing, Gutters, Service, Construction, Shop). The exporter's "team" filter |
 | **inspection** | one run of one checklist on one asset by one person. A **DVIR** is an inspection on a checklist marked DVIR |
@@ -603,7 +611,7 @@ settings           key PK, value jsonb, updated_by, updated_at
 audit_log          id, at, actor_email, action, entity, entity_id, before jsonb, after jsonb
 
 -- assets -------------------------------------------------------------------
-asset_categories   id, name_en, name_es, kind (vehicle|trailer|equipment|tool|safety),
+asset_categories   id, name_en, name_es, kind (vehicle|trailer|equipment|tool|safety|technology),
                    tag_prefix, meter_kind (odometer|hours|both|none), archived
 assets             id, tag UNIQUE, name, category_id, team_id,
                    status (safe|defect|out_of_service|retired), status_since, status_reason, manual_hold,
@@ -1856,7 +1864,7 @@ written.
 
 | Column | Example | Notes |
 | --- | --- | --- |
-| `tag` | `TRL-03` | unique. Suggested prefixes: TRK truck, TRL trailer, EQ equipment, TL power tool, LAD ladder, FP fall protection, SHOP shop |
+| `tag` | `TRL-03` | unique. Suggested prefixes: TRK truck, TRL trailer, EQ equipment, TL power tool, LAD ladder, FP fall protection, SHOP shop, IT computers, tablets and phones |
 | `name` | `16' dump trailer` | |
 | `category` | `Dump trailer` | must exist, or be listed in the categories sheet |
 | `team` | `Roofing` | |

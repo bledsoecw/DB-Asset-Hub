@@ -31,7 +31,7 @@ HERE = Path(__file__).resolve().parent
 TITLE = "DB Asset Hub: Asset List"
 DESCRIPTION = (
     "One response per asset: every truck, trailer, piece of equipment, power tool, "
-    "ladder and fall-protection kit we track. After you submit, tap \"Submit another "
+    "ladder and fall-protection kit we track, and every computer, tablet and phone we issue. After you submit, tap \"Submit another "
     "response\" for the next one. Skip anything you don't know; the office fills in the rest."
 )
 CONFIRMATION = "Saved. Tap \"Submit another response\" for the next asset."
@@ -42,6 +42,7 @@ CATEGORIES = [
     "Skid steer or loader", "Lift or telehandler", "Roof conveyor or hoist",
     "Generator", "Air compressor", "Pressure washer",
     "Roofing nailer or nail gun", "Other power tool", "Ladder", "Fall protection gear",
+    "Computer or laptop", "Tablet or iPad", "Cell phone", "Other technology",
 ]
 TEAMS = ["Roofing", "Gutters", "Service", "Construction", "Shop / Office"]
 
@@ -61,7 +62,8 @@ QUESTIONS = [
              "help": "If it's numbered or labeled today (Truck 7, T-3). Leave blank if not; the office assigns the Asset Hub tag."},
             {"key": "team", "col": "team", "type": "choice", "title": "Team", "options": TEAMS, "other": True},
             {"key": "assigned_to", "col": "assigned_to_email", "type": "text",
-             "title": "Who usually drives or uses it", "help": "A name or a company email."},
+             "title": "Who usually drives or uses it",
+             "help": "A name or a company email. For a computer, tablet or phone: who it's issued to."},
         ],
     },
     {
@@ -73,7 +75,7 @@ QUESTIONS = [
             {"key": "model", "col": "model", "type": "text", "title": "Model"},
             {"key": "year", "col": "year", "type": "number", "title": "Year", "min": 1950, "max": 2030},
             {"key": "vin_serial", "col": "vin_serial", "type": "text", "title": "VIN or serial number",
-             "help": "A VIN is 17 characters. Copy it exactly."},
+             "help": "A VIN is 17 characters. Copy it exactly. Computers, tablets and phones: the serial number is in Settings, under About."},
             {"key": "plate", "col": "plate", "type": "text", "title": "License plate"},
             {"key": "plate_state", "col": "plate_state", "type": "text", "title": "Plate state", "help": "Usually OH."},
             {"key": "gvwr_lbs", "col": "gvwr_lbs", "type": "number", "title": "GVWR (lbs)", "min": 0, "max": 200000,
@@ -259,7 +261,9 @@ def page_instructions(c):
         ("Vehicles", "pickups, dump trucks, box and flatbed trucks, vans, cars"),
         ("Trailers", "dump, equipment and enclosed trailers"),
         ("Equipment", "skid steers, lifts, roof conveyors and hoists, generators, compressors, pressure washers"),
-        ("Tools and safety gear", "nailers and other power tools, ladders, harnesses, lanyards, SRLs, roof anchors"),
+        ("Tools", "power tools, and any tool worth over $100 (use your best judgment)"),
+        ("Safety gear", "every ladder and all fall-protection gear: harnesses, lanyards, SRLs, roof anchors"),
+        ("Technology", "computers, laptops, tablets and cell phones the company issued"),
     ]:
         y = para(c, x, y, cw, f"<b>{group}:</b> {items}") - 2
     y -= 16
@@ -269,8 +273,8 @@ def page_instructions(c):
              "<b>On a phone, tablet or computer:</b> use the online form Carl sends you. Same questions, one asset "
              "at a time. After each one, tap <b>Submit another response</b>.") - 6
     y = para(c, x, y, cw,
-             "<b>On paper:</b> print page 2 once for each vehicle, trailer and piece of equipment. Small tools and "
-             "safety gear (nailers, saws, ladders, harnesses) can go on page 3, fifteen to a page. "
+             "<b>On paper:</b> print page 2 once for each vehicle, trailer and piece of equipment. Tools, safety "
+             "gear and devices (nailers, saws, ladders, harnesses, laptops, phones) can go on page 3, fifteen to a page. "
              "Give the pages to Carl.") - 18
 
     mono(c, x, y, "Where to find it", size=8, color=NAVY, space=1.0)
@@ -281,6 +285,7 @@ def page_instructions(c):
         ("Odometer", "The dash."),
         ("Engine hours", "The hour meter, on the dash or the engine."),
         ("Serial number", "The data plate on the machine or tool."),
+        ("Device serial", "Computers, tablets and phones: Settings, under About."),
         ("Plate", "The plate itself, or the registration in the glove box."),
     ]
     for i, (k, v) in enumerate(rows):
@@ -378,7 +383,7 @@ def page_record(c):
 
 def page_quick_list(c):
     w, h = landscape(letter)
-    header(c, w, h, "Deitemeyer Brothers · DB Asset Hub · small tools and safety gear",
+    header(c, w, h, "Deitemeyer Brothers · DB Asset Hub · tools, safety gear and devices",
            "Quick list")
     x = M
     y = h - 74
@@ -387,7 +392,7 @@ def page_quick_list(c):
     c.setFont("Sans", 8.5)
     c.setFillColor(MUTED)
     c.drawString(x + 360, y - 14,
-                 "Kind: nailer, saw, drill, ladder, harness, lanyard, SRL, anchor, other.")
+                 "Kind: nailer, saw, drill, ladder, harness, SRL, laptop, tablet, phone, other.")
     y -= 44
     cols = [("#", 20), ("Kind", 82), ("Name or description", 132), ("Make", 70), ("Model", 70),
             ("Serial number", 104), ("Team", 62), ("Who uses it", 84), ("Condition / notes", 96)]
