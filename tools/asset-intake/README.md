@@ -11,25 +11,30 @@ fields. Two ways to fill it in, with the same questions in the same order:
   is a quick list for small tools and safety gear, fifteen to a page.
 
 Both come from `QUESTIONS` in `build.py`. Change a question there and run
-`python3 tools/asset-intake/build.py --folder-id <Drive folder id>` to rebuild
-both. Then paste the new `AssetListForm.gs` into the script project and edit the
-live form by hand (a re-run does not rebuild an existing form).
+`python3 tools/asset-intake/build.py` to rebuild both. Then paste the new
+`AssetListForm.gs` into the script project and edit the live form by hand (a
+re-run does not rebuild an existing form).
 
 ## Setting it up (once, about five minutes)
 
-Everything lives in Carl's Drive folder **DB Asset Hub: Asset List**
-(`1Y_FSHZmWxuM8rH_CV0sa19IoCkmYbEvY`).
+Everything belongs to **operations@deitemeyerbrothers.com** (Carl, 26 Oct
+2026), like the hub's live deployment. Use a Chrome window signed in to that
+account only: an Incognito window, or a Chrome profile of its own. Apps Script
+gets the account wrong when a browser is signed in to several.
 
-1. Drop `asset-list-printable.pdf` into that folder (any name works; the script
-   uses whatever PDF is there).
-2. Open <https://script.google.com/create> signed in as
-   carlbledsoe@deitemeyerbrothers.com. Replace the starter code with
-   `AssetListForm.gs`, name the project, and save.
-3. Choose `buildAssetListForm` and click **Run**. Allow the permissions it asks
-   for (Forms, Sheets, Drive, and sending you one email).
+1. Open <https://script.google.com/create> as operations@. Replace the starter
+   code with `AssetListForm.gs`, name the project "DB Asset Hub: Asset List
+   form", and save.
+2. Choose `buildAssetListForm` and click **Run**. Allow the permissions it asks
+   for (Forms, Sheets, Drive, and sending one email). It makes the **DB Asset
+   Hub: Asset List** folder in operations@'s Drive, with the form and its
+   responses Sheet inside, and emails operations@ the links.
+3. Drop `asset-list-printable.pdf` into that folder (any name works; the script
+   uses whatever PDF is there), then click **Run** again. The form now links the
+   PDF, and anyone at the company can open it.
 4. The email "DB Asset Hub: Asset List form links" has the link to send, the
-   form's edit link, the responses Sheet and the printable PDF. The execution
-   log shows the same lines.
+   form's edit link, the responses Sheet and the folder. The execution log
+   shows the same lines on every run.
 
 The form only takes company Google accounts, and records who filled in each
 response. Someone without a company account can't open it; to allow that,
