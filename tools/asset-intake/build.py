@@ -3,15 +3,22 @@
     python3 tools/asset-intake/build.py
 
 Writes, next to this file:
-  asset-list-printable.pdf   the paper version (instructions, one record per asset,
-                             a quick list for small tools)
+  asset-list-printable.pdf   the paper version: instructions, an equipment record
+                             (one per item), a tools list and a technology list
   AssetListForm.gs           the Apps Script that builds the Google Form and its
                              response Sheet in the Drive of whoever runs it
-                             (operations@; run buildAssetListForm)
+                             (operations@). buildAssetListForm makes it;
+                             rebuildAssetListForm reshapes the live one in place.
 
-QUESTIONS is the single source: the Form, the PDF and the column mapping to
-PLAYBOOK.md Appendix B all come from it, so the paper and the phone always ask
-the same things in the same order.
+The form opens on one question, "What are you entering?", and branches:
+  Equipment   vehicles, trailers and machines, one per response (five pages)
+  Tools       power tools, tools over $100, ladders and fall protection: who
+              they belong to once, then one short page per tool, "Add tool 2?"
+              after each, up to MAX_TOOLS per response
+  Technology  one computer, tablet or phone per response
+
+PAGES is the single source: the form, the PDF and the column mapping in
+README.md all follow it, so the paper and the phone ask the same things.
 """
 
 import argparse
@@ -30,30 +37,44 @@ HERE = Path(__file__).resolve().parent
 
 TITLE = "DB Asset Hub: Asset List"
 DESCRIPTION = (
-    "One response per asset: every truck, trailer, piece of equipment, power tool, "
-    "ladder and fall-protection kit we track, and every computer, tablet and phone we issue. After you submit, tap \"Submit another "
-    "response\" for the next one. Skip anything you don't know; the office fills in the rest."
+    "Start by choosing what you're entering: equipment, tools or technology. Each one asks only "
+    "what fits. Equipment and technology: one item per response. Tools: up to 10 per response. "
+    "After you submit, tap \"Submit another response\" for more. Skip anything you don't know; "
+    "the office fills in the rest."
 )
-CONFIRMATION = "Saved. Tap \"Submit another response\" for the next asset."
+CONFIRMATION = "Saved. Tap \"Submit another response\" to add more."
 
-CATEGORIES = [
+TEAMS = ["Roofing", "Gutters", "Service", "Construction", "Shop / Office"]
+EQUIPMENT_KINDS = [
     "Pickup truck", "Dump truck", "Box or flatbed truck", "Van", "Car or SUV",
     "Dump trailer", "Equipment trailer", "Enclosed trailer",
     "Skid steer or loader", "Lift or telehandler", "Roof conveyor or hoist",
     "Generator", "Air compressor", "Pressure washer",
-    "Roofing nailer or nail gun", "Other power tool", "Ladder", "Fall protection gear",
-    "Computer or laptop", "Tablet or iPad", "Cell phone", "Other technology",
 ]
-TEAMS = ["Roofing", "Gutters", "Service", "Construction", "Shop / Office"]
+TOOL_KINDS = [
+    "Roofing nailer or nail gun", "Saw", "Drill or impact driver", "Grinder", "Other power tool",
+    "Ladder", "Harness", "Lanyard or SRL", "Roof anchor", "Other tool or safety gear",
+]
+TECH_KINDS = ["Laptop", "Desktop computer", "Tablet or iPad", "Cell phone"]
+MAX_TOOLS = 10
 
-# key: the column in the response Sheet's mapping; col: PLAYBOOK.md Appendix B column.
-QUESTIONS = [
+START = {
+    "type": "nav", "title": "What are you entering?", "required": True,
+    "help": "Pick one. You can come back with \"Submit another response\" for the others.",
+    "choices": [
+        {"label": "Equipment: vehicles, trailers and machines", "goto": "eq1"},
+        {"label": "Tools: power tools, tools over $100, ladders and fall protection", "goto": "tools"},
+        {"label": "Technology: computers, tablets and phones", "goto": "tech"},
+    ],
+}
+
+# Equipment pages. key/col map each answer to PLAYBOOK.md Appendix B (README.md).
+EQUIPMENT = [
     {
-        "title": "What is it",
-        "help": "",
+        "id": "eq1", "title": "Equipment", "help": "One vehicle, trailer or machine per response.",
         "items": [
-            {"key": "category", "col": "category", "type": "choice", "title": "Kind of asset",
-             "options": CATEGORIES, "other": True, "required": True},
+            {"key": "category", "col": "category", "type": "choice", "title": "Kind of equipment",
+             "options": EQUIPMENT_KINDS, "other": True, "required": True},
             {"key": "name", "col": "name", "type": "text", "title": "Name or short description",
              "required": True,
              "help": "What you'd call it, e.g. \"2019 F-250, white, Alberto's truck\" or \"16 ft Big Tex dump trailer\"."},
@@ -62,20 +83,19 @@ QUESTIONS = [
              "help": "If it's numbered or labeled today (Truck 7, T-3). Leave blank if not; the office assigns the Asset Hub tag."},
             {"key": "team", "col": "team", "type": "choice", "title": "Team", "options": TEAMS, "other": True},
             {"key": "assigned_to", "col": "assigned_to_email", "type": "text",
-             "title": "Who usually drives or uses it",
-             "help": "A name or a company email. For a computer, tablet or phone: who it's issued to."},
+             "title": "Who usually drives or uses it", "help": "A name or a company email."},
         ],
     },
     {
-        "title": "Make, model and ID",
+        "id": "eq2", "title": "Make, model and ID",
         "help": "Vehicles: the VIN and GVWR are on the sticker in the driver's door jamb. Trailers: on the tongue. "
-                "Equipment and tools: on the data plate.",
+                "Machines: on the data plate.",
         "items": [
             {"key": "make", "col": "make", "type": "text", "title": "Make"},
             {"key": "model", "col": "model", "type": "text", "title": "Model"},
             {"key": "year", "col": "year", "type": "number", "title": "Year", "min": 1950, "max": 2030},
             {"key": "vin_serial", "col": "vin_serial", "type": "text", "title": "VIN or serial number",
-             "help": "A VIN is 17 characters. Copy it exactly. Computers, tablets and phones: the serial number is in Settings, under About."},
+             "help": "A VIN is 17 characters. Copy it exactly."},
             {"key": "plate", "col": "plate", "type": "text", "title": "License plate"},
             {"key": "plate_state", "col": "plate_state", "type": "text", "title": "Plate state", "help": "Usually OH."},
             {"key": "gvwr_lbs", "col": "gvwr_lbs", "type": "number", "title": "GVWR (lbs)", "min": 0, "max": 200000,
@@ -86,8 +106,7 @@ QUESTIONS = [
         ],
     },
     {
-        "title": "Meters and fuel",
-        "help": "Today's readings.",
+        "id": "eq3", "title": "Meters and fuel", "help": "Today's readings.",
         "items": [
             {"key": "odometer", "col": "odometer", "type": "number", "title": "Odometer (miles)", "min": 0, "max": 9999999},
             {"key": "engine_hours", "col": "engine_hours", "type": "number", "title": "Engine hours",
@@ -102,8 +121,7 @@ QUESTIONS = [
         ],
     },
     {
-        "title": "Purchase",
-        "help": "Skip anything you don't know. The office fills these in.",
+        "id": "eq4", "title": "Purchase", "help": "Skip anything you don't know. The office fills these in.",
         "items": [
             {"key": "purchase_date", "col": "purchase_date", "type": "date", "title": "Purchase date"},
             {"key": "purchase_price", "col": "purchase_price", "type": "number", "title": "Purchase price ($)",
@@ -114,8 +132,7 @@ QUESTIONS = [
         ],
     },
     {
-        "title": "Condition and notes",
-        "help": "",
+        "id": "eq5", "title": "Condition and notes", "help": "",
         "items": [
             {"key": "notes", "col": "notes", "type": "paragraph", "title": "Notes",
              "help": "Condition, known problems, anything we should know."},
@@ -123,10 +140,68 @@ QUESTIONS = [
     },
 ]
 
+TOOLS = {
+    "id": "tools", "title": "Tools", "submitBefore": True,
+    "help": "Power tools, any tool worth over $100 (use your judgment), every ladder and all fall-protection "
+            "gear. Say whose they are once, then one short page per tool. Up to 10 per response; for more, "
+            "submit and tap \"Submit another response\".",
+    "items": [
+        {"type": "text", "title": "Whose tools are these?", "required": True,
+         "help": "Your name, or the crew or shop they belong to."},
+        {"type": "choice", "title": "Tools: team", "options": TEAMS, "other": True},
+        {"type": "text", "title": "Where are they kept?", "help": "Truck, trailer, shop, office."},
+    ],
+}
+
+
+def tool_page(n):
+    first = n == 1
+    items = [
+        {"type": "list", "title": f"Tool {n}: kind", "options": TOOL_KINDS, "required": True},
+        {"type": "text", "title": f"Tool {n}: make and model", "required": True,
+         "help": "e.g. DeWalt DCS570 circular saw, or Werner 28 ft fiberglass extension ladder." if first else ""},
+        {"type": "text", "title": f"Tool {n}: serial number",
+         "help": "On the data plate or label. Skip it if there isn't one." if first else ""},
+        {"type": "number", "title": f"Tool {n}: value ($)", "min": 0, "max": 100000,
+         "help": "About what it would cost to replace." if first else ""},
+    ]
+    if n < MAX_TOOLS:
+        items.append({"type": "nav", "title": f"Add tool {n + 1}?", "required": True, "choices": [
+            {"label": f"Yes, add tool {n + 1}", "goto": f"tool{n + 1}"},
+            {"label": "No, that's all. Submit.", "goto": "SUBMIT"},
+        ]})
+    help_text = (f"That's {MAX_TOOLS}. Submit this one, then tap \"Submit another response\" for more."
+                 if n == MAX_TOOLS else "")
+    return {"id": f"tool{n}", "title": f"Tool {n}", "help": help_text, "items": items}
+
+
+TECH = {
+    "id": "tech", "title": "Technology", "submitBefore": True,
+    "help": "One computer, tablet or phone the company issued, per response. Submit, then tap "
+            "\"Submit another response\" for the next device.",
+    "items": [
+        {"type": "choice", "title": "Device type", "options": TECH_KINDS, "other": True, "required": True},
+        {"type": "text", "title": "Device make", "required": True, "help": "Apple, Dell, HP, Samsung."},
+        {"type": "text", "title": "Device model", "required": True,
+         "help": "iPhone 15, Latitude 5440, iPad (10th generation)."},
+        {"type": "text", "title": "Device serial number", "required": True,
+         "help": "iPhone and iPad: Settings, General, About. Android: Settings, About phone. "
+                 "Laptops: the sticker underneath, or Settings, About."},
+        {"type": "text", "title": "Issued to", "required": True, "help": "A name or a company email."},
+        {"type": "choice", "title": "Device team", "options": TEAMS, "other": True},
+        {"type": "text", "title": "Phone number", "help": "Cell phones only."},
+        {"type": "date", "title": "Device purchase date"},
+        {"type": "number", "title": "Device purchase price ($)", "min": 0, "max": 20000},
+        {"type": "paragraph", "title": "Device notes", "help": "Condition, case, charger, anything we should know."},
+    ],
+}
+
+PAGES = ([{"id": "start", "title": "", "help": "", "items": [START]}]
+         + EQUIPMENT + [TOOLS] + [tool_page(n) for n in range(1, MAX_TOOLS + 1)] + [TECH])
+
 # ---------------------------------------------------------------- the PDF ---
 
 NAVY = HexColor("#1A4789")
-NAVY_800 = HexColor("#142A52")
 NAVY_200 = HexColor("#B9CDF0")
 GREEN = HexColor("#3CC84A")
 INK = HexColor("#0E1113")
@@ -146,6 +221,7 @@ for name, path in FONTS.items():
 pdfmetrics.registerFontFamily("Sans", normal="Sans", bold="Sans-Bold", italic="Sans", boldItalic="Sans-Bold")
 
 M = 36  # page margin
+PAGE_COUNT = 4
 
 
 def mono(c, x, y, text, size=7, color=LABEL, space=0.9):
@@ -174,8 +250,8 @@ def header(c, w, h, eyebrow, title, band=50, sub=None):
         c.drawString(M, h - 82, sub)
 
 
-def footer(c, w, text):
-    mono(c, M, 22, text, size=6.5, color=MUTED, space=0.6)
+def footer(c, page, note):
+    mono(c, M, 22, f"DB Asset Hub · Asset List · page {page} of {PAGE_COUNT} · {note}", size=6.5, color=MUTED, space=0.6)
 
 
 def section(c, x, y, w, number, title, note=None):
@@ -243,39 +319,67 @@ def para(c, x, y, w, text, size=10, leading=14, color=INK, font="Sans"):
     return y - ph
 
 
+def grid(c, x, y, cols, rows, row_h=27, head_h=18):
+    """A numbered write-in table: navy header row, alternate rows tinted."""
+    total = sum(cw for _, cw in cols)
+    c.setFillColor(NAVY)
+    c.rect(x, y - head_h, total, head_h, stroke=0, fill=1)
+    cx = x
+    for name, cw in cols:
+        mono(c, cx + 5, y - 12, name, size=6.5, color=white, space=0.7)
+        cx += cw
+    top = y - head_h
+    for r in range(rows):
+        ry = top - (r + 1) * row_h
+        if r % 2 == 1:
+            c.setFillColor(TINT)
+            c.rect(x, ry, total, row_h, stroke=0, fill=1)
+        c.setFillColor(MUTED)
+        c.setFont("Sans", 8)
+        c.drawCentredString(x + 10, ry + 10, str(r + 1))
+    c.setStrokeColor(LINE)
+    c.setLineWidth(0.6)
+    c.rect(x, top - rows * row_h, total, rows * row_h, stroke=1, fill=0)
+    for r in range(1, rows):
+        c.line(x, top - r * row_h, x + total, top - r * row_h)
+    cx = x
+    for _, cw in cols[:-1]:
+        cx += cw
+        c.line(cx, top, cx, top - rows * row_h)
+
+
 def page_instructions(c):
     w, h = letter
     header(c, w, h, "Deitemeyer Brothers · DB Asset Hub", "Asset List", band=100,
-           sub="Every truck, trailer, machine and tool we track")
+           sub="Every truck, trailer, machine, tool and device we track")
     x, cw = M + 4, w - 2 * M - 8
     y = h - 130
 
     mono(c, x, y, "What this is", size=8, color=NAVY, space=1.0)
     y = para(c, x, y - 8, cw,
              "We're building <b>DB Asset Hub</b>: one place for daily inspections, repairs and maintenance "
-             "on everything we own. It starts with a list of what we have. Fill in one record for each asset.") - 18
+             "on everything we own. It starts with a list of what we have.") - 18
 
-    mono(c, x, y, "What to list", size=8, color=NAVY, space=1.0)
+    mono(c, x, y, "Three kinds of entries", size=8, color=NAVY, space=1.0)
     y -= 8
     for group, items in [
-        ("Vehicles", "pickups, dump trucks, box and flatbed trucks, vans, cars"),
-        ("Trailers", "dump, equipment and enclosed trailers"),
-        ("Equipment", "skid steers, lifts, roof conveyors and hoists, generators, compressors, pressure washers"),
-        ("Tools", "power tools, and any tool worth over $100 (use your best judgment)"),
-        ("Safety gear", "every ladder and all fall-protection gear: harnesses, lanyards, SRLs, roof anchors"),
-        ("Technology", "computers, laptops, tablets and cell phones the company issued"),
+        ("Equipment", "vehicles, trailers and machines: pickups, dump and box trucks, vans, cars; dump, "
+                      "equipment and enclosed trailers; skid steers, lifts, roof conveyors and hoists, "
+                      "generators, compressors, pressure washers. <i>Page 2, one per item.</i>"),
+        ("Tools", "power tools, and any tool worth over $100 (use your best judgment), plus every ladder and "
+                  "all fall-protection gear: harnesses, lanyards, SRLs, roof anchors. <i>Page 3, fifteen to a page.</i>"),
+        ("Technology", "computers, laptops, tablets and cell phones the company issued. "
+                       "<i>Page 4, twelve to a page.</i>"),
     ]:
-        y = para(c, x, y, cw, f"<b>{group}:</b> {items}") - 2
-    y -= 16
+        y = para(c, x, y, cw, f"<b>{group}:</b> {items}") - 4
+    y -= 14
 
     mono(c, x, y, "Two ways to fill it in", size=8, color=NAVY, space=1.0)
     y = para(c, x, y - 8, cw,
-             "<b>On a phone, tablet or computer:</b> use the online form Carl sends you. Same questions, one asset "
-             "at a time. After each one, tap <b>Submit another response</b>.") - 6
-    y = para(c, x, y, cw,
-             "<b>On paper:</b> print page 2 once for each vehicle, trailer and piece of equipment. Tools, safety "
-             "gear and devices (nailers, saws, ladders, harnesses, laptops, phones) can go on page 3, fifteen to a page. "
-             "Give the pages to Carl.") - 18
+             "<b>On a phone, tablet or computer:</b> use the online form Carl sends you. It starts with "
+             "<b>What are you entering?</b> and then asks only what fits. Tools go in up to ten at a time. "
+             "After you submit, tap <b>Submit another response</b> for more.") - 6
+    y = para(c, x, y, cw, "<b>On paper:</b> print the pages you need and give them to Carl.") - 18
 
     mono(c, x, y, "Where to find it", size=8, color=NAVY, space=1.0)
     y -= 10
@@ -284,8 +388,8 @@ def page_instructions(c):
         ("GVWR", "The same door-jamb or tongue sticker."),
         ("Odometer", "The dash."),
         ("Engine hours", "The hour meter, on the dash or the engine."),
-        ("Serial number", "The data plate on the machine or tool."),
-        ("Device serial", "Computers, tablets and phones: Settings, under About."),
+        ("Serial number", "The data plate or label on the machine or tool."),
+        ("Device serial", "iPhone, iPad: Settings, General, About. Android: About phone. Laptop: sticker underneath."),
         ("Plate", "The plate itself, or the registration in the glove box."),
     ]
     for i, (k, v) in enumerate(rows):
@@ -314,17 +418,16 @@ def page_instructions(c):
         c.rect(x, y - 9, 4, 4, stroke=0, fill=1)
         y = para(c, x + 12, y, cw - 12, line) - 5
 
-    footer(c, w, "DB Asset Hub · Asset List · page 1 of 3 · Oct 2026")
+    footer(c, 1, "Oct 2026")
 
 
-def page_record(c):
+def page_equipment(c):
     w, h = letter
-    header(c, w, h, "Deitemeyer Brothers · DB Asset Hub · one per asset", "Asset record")
+    header(c, w, h, "Deitemeyer Brothers · DB Asset Hub · one per vehicle, trailer or machine", "Equipment record")
     x, cw = M, w - 2 * M
     gap = 12
     y = h - 72
 
-    # who and when, office use
     third = (cw - 2 * gap) / 3
     box(c, x, y, third * 1.3, "Filled in by", 18)
     box(c, x + third * 1.3 + gap, y, third * 0.7, "Date", 18)
@@ -332,10 +435,10 @@ def page_record(c):
     c.roundRect(x + 2 * third + 2 * gap - 4, y - 28, third + 4, 34, 3, stroke=0, fill=1)
     y = box(c, x + 2 * third + 2 * gap, y, third - 4, "Office use: tag", 18) - 2
 
-    q = {i["key"]: i for s in QUESTIONS for i in s["items"]}
+    q = {i["key"]: i for s in EQUIPMENT for i in s["items"]}
 
     y = section(c, x, y, cw, "01", "What is it")
-    y = checks(c, x, y, cw, q["category"]["title"], CATEGORIES, cols=4, other=True)
+    y = checks(c, x, y, cw, q["category"]["title"], EQUIPMENT_KINDS, cols=4, other=True)
     y = box(c, x, y, cw, q["name"]["title"])
     half = (cw - gap) / 2
     box(c, x, y, half * 0.6, q["unit_number"]["title"].replace(" it has now", ""))
@@ -374,55 +477,49 @@ def page_record(c):
     y = section(c, x, y, cw, "05", "Condition and notes")
     c.setStrokeColor(HAIR)
     c.setLineWidth(0.7)
-    lines = 4
-    for i in range(lines):
+    for i in range(4):
         c.line(x, y - 14 - i * 20, x + cw, y - 14 - i * 20)
 
-    footer(c, w, "DB Asset Hub · Asset List · page 2 of 3 · print one per asset")
+    footer(c, 2, "print one per vehicle, trailer or machine")
 
 
-def page_quick_list(c):
+def page_tools(c):
     w, h = landscape(letter)
-    header(c, w, h, "Deitemeyer Brothers · DB Asset Hub · tools, safety gear and devices",
-           "Quick list")
+    header(c, w, h, "Deitemeyer Brothers · DB Asset Hub · power tools, tools over $100, ladders, fall protection",
+           "Tools")
     x = M
     y = h - 74
-    box(c, x, y, 220, "Filled in by", 16)
-    box(c, x + 232, y, 110, "Date", 16)
+    box(c, x, y, 230, "Whose tools are these?", 16)
+    box(c, x + 242, y, 150, "Team", 16)
+    box(c, x + 404, y, 180, "Where are they kept?", 16)
+    box(c, x + 596, y, 124, "Date", 16)
+    y -= 40
     c.setFont("Sans", 8.5)
     c.setFillColor(MUTED)
-    c.drawString(x + 360, y - 14,
-                 "Kind: nailer, saw, drill, ladder, harness, SRL, laptop, tablet, phone, other.")
-    y -= 44
-    cols = [("#", 20), ("Kind", 82), ("Name or description", 132), ("Make", 70), ("Model", 70),
-            ("Serial number", 104), ("Team", 62), ("Who uses it", 84), ("Condition / notes", 96)]
-    total = sum(cw for _, cw in cols)
-    head_h, row_h, rows = 18, 27, 15
-    c.setFillColor(NAVY)
-    c.rect(x, y - head_h, total, head_h, stroke=0, fill=1)
-    cx = x
-    for name, cw in cols:
-        mono(c, cx + 5, y - 12, name, size=6.5, color=white, space=0.7)
-        cx += cw
-    c.setStrokeColor(LINE)
-    c.setLineWidth(0.6)
-    top = y - head_h
-    for r in range(rows):
-        ry = top - (r + 1) * row_h
-        if r % 2 == 1:
-            c.setFillColor(TINT)
-            c.rect(x, ry, total, row_h, stroke=0, fill=1)
-        c.setFillColor(MUTED)
-        c.setFont("Sans", 8)
-        c.drawCentredString(x + 10, ry + 10, str(r + 1))
-    c.rect(x, top - rows * row_h, total, rows * row_h, stroke=1, fill=0)
-    for r in range(1, rows):
-        c.line(x, top - r * row_h, x + total, top - r * row_h)
-    cx = x
-    for _, cw in cols[:-1]:
-        cx += cw
-        c.line(cx, top, cx, top - rows * row_h)
-    footer(c, w, "DB Asset Hub · Asset List · page 3 of 3 · print as many as you need")
+    c.drawString(x, y, "Kind: " + ", ".join(k.lower() for k in TOOL_KINDS) + ".")
+    y -= 10
+    grid(c, x, y, [("#", 20), ("Kind", 118), ("Make and model", 220), ("Serial number", 150),
+                   ("Value ($)", 70), ("Notes", 142)], rows=14)
+    footer(c, 3, "print as many as you need")
+
+
+def page_technology(c):
+    w, h = landscape(letter)
+    header(c, w, h, "Deitemeyer Brothers · DB Asset Hub · computers, tablets and phones the company issued",
+           "Technology")
+    x = M
+    y = h - 74
+    box(c, x, y, 230, "Filled in by", 16)
+    box(c, x + 242, y, 124, "Date", 16)
+    y -= 40
+    c.setFont("Sans", 8.5)
+    c.setFillColor(MUTED)
+    c.drawString(x, y, "Type: laptop, desktop, tablet or iPad, cell phone, other. "
+                       "Serial: Settings, About (phone or tablet), or the sticker underneath (laptop).")
+    y -= 10
+    grid(c, x, y, [("#", 20), ("Type", 84), ("Make", 80), ("Model", 106), ("Serial number", 140),
+                   ("Issued to", 112), ("Phone number", 90), ("Notes", 88)], rows=14)
+    footer(c, 4, "print as many as you need")
 
 
 def build_pdf(path):
@@ -431,10 +528,13 @@ def build_pdf(path):
     c.setAuthor("Deitemeyer Brothers")
     page_instructions(c)
     c.showPage()
-    page_record(c)
+    page_equipment(c)
     c.showPage()
     c.setPageSize(landscape(letter))
-    page_quick_list(c)
+    page_tools(c)
+    c.showPage()
+    c.setPageSize(landscape(letter))
+    page_technology(c)
     c.showPage()
     c.save()
 
@@ -447,32 +547,34 @@ GS_TEMPLATE = r"""/**
  * GENERATED by tools/asset-intake/build.py in bledsoecw/DB-Asset-Hub, from the
  * same question list as the printable PDF. Change the questions there, not here.
  *
- * Run it signed in as the account that should own the form:
+ * Run it signed in as the account that owns the form:
  * operations@deitemeyerbrothers.com.
  *
- * 1. Run buildAssetListForm (Run button, then allow the permissions). It makes
- *    a "DB Asset Hub: Asset List" folder in that account's Drive (or uses the
- *    one already there), puts the form and its response Sheet in it, and
- *    emails that account the links.
- * 2. Drop the printable PDF into that folder and run it again. The form links
- *    the PDF, and anyone at the company can open it.
+ * buildAssetListForm    makes the form, its responses Sheet and the "DB Asset
+ *                       Hub: Asset List" folder, and emails the links. Running
+ *                       it again never makes a second form; it shows the links
+ *                       and links the printable PDF if one is in the folder.
+ * rebuildAssetListForm  reshapes the existing form to these questions. Same
+ *                       form, same link. The answers already in come out in
+ *                       their own tab ("Before rebuild ...") and new answers go
+ *                       to a fresh tab in the same Sheet.
  *
- * Running it again never makes a second form: it shows the links again, and
- * links the PDF if one was added to the folder since.
+ * The form opens on "What are you entering?" and branches to equipment (one
+ * per response), tools (up to 10 per response, "Add tool 2?" after each) or
+ * technology (one device per response).
  */
 var FOLDER_NAME = 'DB Asset Hub: Asset List';
 var SPEC = __SPEC__;
 
 function buildAssetListForm() {
-  Logger.log('Running as ' + Session.getEffectiveUser().getEmail() +
-    ' (this account owns the form, the Sheet and the folder, and gets the email)');
+  logAccount_();
   var props = PropertiesService.getScriptProperties();
   var existing = props.getProperty('FORM_ID');
   if (existing) {
     try {
       var old = FormApp.openById(existing);
       linkPrintable_(old);
-      report_(old, false);
+      report_(old, 'exists');
       return;
     } catch (e) {
       props.deleteProperty('FORM_ID'); // the old form is gone: make a new one
@@ -480,6 +582,55 @@ function buildAssetListForm() {
   }
   var folder = folder_();
   var form = FormApp.create(SPEC.title);
+  settings_(form);
+  addPages_(form);
+  var sheet = SpreadsheetApp.create(SPEC.title + ' (responses)');
+  form.setDestination(FormApp.DestinationType.SPREADSHEET, sheet.getId());
+  DriveApp.getFileById(form.getId()).moveTo(folder);
+  DriveApp.getFileById(sheet.getId()).moveTo(folder);
+  props.setProperty('FORM_ID', form.getId());
+  props.setProperty('SHEET_ID', sheet.getId());
+  linkPrintable_(form);
+  report_(form, 'new');
+}
+
+function rebuildAssetListForm() {
+  logAccount_();
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty('FORM_ID');
+  if (!id) throw new Error('There is no form to rebuild in this script yet. Run buildAssetListForm instead.');
+  var form = FormApp.openById(id);
+  var sheetId = props.getProperty('SHEET_ID') || form.getDestinationId();
+  var ss = SpreadsheetApp.openById(sheetId);
+
+  // Keep what is already in: unlink the current responses tab and name it, so
+  // the new questions land in a clean tab of their own.
+  var stamp = Utilities.formatDate(new Date(), 'America/New_York', 'yyyy-MM-dd HH:mm');
+  var linked = ss.getSheets().filter(function (sh) { return !!sh.getFormUrl(); });
+  var kept = 0;
+  linked.forEach(function (sh) { kept += Math.max(sh.getLastRow() - 1, 0); });
+  form.removeDestination();
+  linked.forEach(function (sh, i) {
+    sh.setName('Before rebuild ' + stamp + (linked.length > 1 ? ' (' + (i + 1) + ')' : ''));
+  });
+
+  form.getItems().forEach(function (item) { form.deleteItem(item); });
+  settings_(form);
+  addPages_(form);
+  form.setDestination(FormApp.DestinationType.SPREADSHEET, sheetId);
+  props.setProperty('SHEET_ID', sheetId);
+  linkPrintable_(form);
+  Logger.log(kept + ' earlier response(s) are in the tab "Before rebuild ' + stamp + '". New ones go to the newest tab.');
+  report_(form, 'rebuilt');
+}
+
+function logAccount_() {
+  Logger.log('Running as ' + Session.getEffectiveUser().getEmail() +
+    ' (this account owns the form, the Sheet and the folder, and gets the email)');
+}
+
+function settings_(form) {
+  form.setTitle(SPEC.title);
   form.setDescription(SPEC.description);
   form.setCollectEmail(true);
   try { form.setRequireLogin(true); } catch (e) { /* not a Workspace account */ }
@@ -489,21 +640,37 @@ function buildAssetListForm() {
   form.setConfirmationMessage(SPEC.confirmation);
   form.setAcceptingResponses(true);
   try { form.setPublished(true); } catch (e) { /* older Forms: always published */ }
+}
 
-  SPEC.sections.forEach(function (section, i) {
-    if (i > 0) form.addPageBreakItem().setTitle(section.title).setHelpText(section.help || '');
-    else form.addSectionHeaderItem().setTitle(section.title).setHelpText(section.help || '');
-    section.items.forEach(function (q) { addItem_(form, q); });
+// Pages in order. The first has no page break; every other page starts with
+// one. A page marked submitBefore ends the path before it (equipment ends
+// before tools, the last tool before technology). Choices that jump to a page
+// are set last, once every page break exists.
+function addPages_(form) {
+  var breaks = {};
+  var jumps = [];
+  SPEC.pages.forEach(function (page, i) {
+    if (i > 0) {
+      var pb = form.addPageBreakItem().setTitle(page.title).setHelpText(page.help || '');
+      if (page.submitBefore) pb.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+      breaks[page.id] = pb;
+    }
+    page.items.forEach(function (q) {
+      if (q.type === 'nav') {
+        var item = form.addMultipleChoiceItem().setTitle(q.title).setHelpText(q.help || '').setRequired(true);
+        jumps.push({ item: item, q: q });
+      } else {
+        addItem_(form, q);
+      }
+    });
   });
-
-  var sheet = SpreadsheetApp.create(SPEC.title + ' (responses)');
-  form.setDestination(FormApp.DestinationType.SPREADSHEET, sheet.getId());
-  DriveApp.getFileById(form.getId()).moveTo(folder);
-  DriveApp.getFileById(sheet.getId()).moveTo(folder);
-  props.setProperty('FORM_ID', form.getId());
-  props.setProperty('SHEET_ID', sheet.getId());
-  linkPrintable_(form);
-  report_(form, true);
+  jumps.forEach(function (j) {
+    j.item.setChoices(j.q.choices.map(function (c) {
+      return c.goto === 'SUBMIT'
+        ? j.item.createChoice(c.label, FormApp.PageNavigationType.SUBMIT)
+        : j.item.createChoice(c.label, breaks[c.goto]);
+    }));
+  });
 }
 
 function addItem_(form, q) {
@@ -511,6 +678,8 @@ function addItem_(form, q) {
   if (q.type === 'choice') {
     item = form.addMultipleChoiceItem().setChoiceValues(q.options);
     if (q.other) item.showOtherOption(true);
+  } else if (q.type === 'list') {
+    item = form.addListItem().setChoiceValues(q.options);
   } else if (q.type === 'paragraph') {
     item = form.addParagraphTextItem();
   } else if (q.type === 'date') {
@@ -568,14 +737,19 @@ function linkPrintable_(form) {
   }
 }
 
-function report_(form, isNew) {
+function report_(form, status) {
   var live = form.getPublishedUrl();
   var link = live;
   try { link = form.shortenFormUrl(live); } catch (e) { /* the long link works too */ }
   var sheetId = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || form.getDestinationId();
   var pdf = printable_();
+  var heading = {
+    'new': 'The Asset List form is ready.',
+    'exists': 'The Asset List form already exists. Its links:',
+    'rebuilt': 'The Asset List form is rebuilt. Same link as before:'
+  }[status];
   var lines = [
-    isNew ? 'The Asset List form is ready.' : 'The Asset List form already exists. Its links:',
+    heading,
     'Send this link to whoever fills it in: ' + link,
     'Edit the form: ' + form.getEditUrl(),
     'Responses (Google Sheet): https://docs.google.com/spreadsheets/d/' + sheetId + '/edit',
@@ -584,7 +758,7 @@ function report_(form, isNew) {
         : 'No printable PDF in the folder yet. Drop it into the folder and run this again to link it from the form.'
   ];
   Logger.log(lines.join('\n'));
-  if (isNew) {
+  if (status === 'new') {
     MailApp.sendEmail(Session.getEffectiveUser().getEmail(),
       'DB Asset Hub: Asset List form links', lines.join('\n\n'));
   }
@@ -595,18 +769,21 @@ MANIFEST = {"timeZone": "America/New_York", "exceptionLogging": "STACKDRIVER", "
 
 
 def build_gs():
+    def clean(q):
+        return {k: v for k, v in q.items() if k not in ("key", "col") and v != ""}
+
     spec = {
         "title": TITLE,
         "description": DESCRIPTION,
         "confirmation": CONFIRMATION,
-        "sections": [
-            {"title": s["title"], "help": s["help"],
-             "items": [{k: v for k, v in i.items() if k not in ("key", "col")} for i in s["items"]]}
-            for s in QUESTIONS
+        "pages": [
+            {"id": p["id"], "title": p["title"], "help": p["help"],
+             **({"submitBefore": True} if p.get("submitBefore") else {}),
+             "items": [clean(i) for i in p["items"]]}
+            for p in PAGES
         ],
     }
-    return (GS_TEMPLATE
-            .replace("__SPEC__", json.dumps(spec, indent=2, ensure_ascii=False)))
+    return GS_TEMPLATE.replace("__SPEC__", json.dumps(spec, indent=1, ensure_ascii=False))
 
 
 def main():
