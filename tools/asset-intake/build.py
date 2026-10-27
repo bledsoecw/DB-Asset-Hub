@@ -769,7 +769,10 @@ function linkPrintable_(form) {
   var pdf = printable_();
   if (!pdf) return;
   try {
-    pdf.setSharing(DriveApp.Access.DOMAIN_WITH_LINK, DriveApp.Permission.VIEW);
+    // Only when it's private: one already open to anyone with the link stays that way.
+    if (pdf.getSharingAccess() === DriveApp.Access.PRIVATE) {
+      pdf.setSharing(DriveApp.Access.DOMAIN_WITH_LINK, DriveApp.Permission.VIEW);
+    }
   } catch (e) {
     Logger.log('Could not share the printable PDF with the company: ' + e);
   }
