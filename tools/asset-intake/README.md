@@ -75,6 +75,7 @@ version**.
 The form only takes company Google accounts, and records who filled in each
 response. Someone without a company account can't open it; to allow that,
 turn off "Restrict to users in Deitemeyer Brothers" in the form's Settings.
+`rebuildAssetListForm` keeps that setting as it finds it.
 
 Google Apps Script can't create file-upload questions. To collect photos of
 each asset, add a **File upload** question in the form editor.

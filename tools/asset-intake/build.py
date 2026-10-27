@@ -615,8 +615,10 @@ function rebuildAssetListForm() {
     sh.setName('Before rebuild ' + stamp + (linked.length > 1 ? ' (' + (i + 1) + ')' : ''));
   });
 
+  var companyOnly = form.requiresLogin(); // who may answer stays as it is on the live form
   form.getItems().forEach(function (item) { form.deleteItem(item); });
   settings_(form);
+  try { form.setRequireLogin(companyOnly); } catch (e) { /* not a Workspace account */ }
   addPages_(form);
   form.setDestination(FormApp.DestinationType.SPREADSHEET, sheetId);
   props.setProperty('SHEET_ID', sheetId);
