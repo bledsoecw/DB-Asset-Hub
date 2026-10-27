@@ -51,11 +51,16 @@ gets the account wrong when a browser is signed in to several.
 `buildAssetListForm` never touches a form that already exists. To change the
 questions on the live form, as operations@:
 
-1. Open the same Apps Script project ("DB Asset Hub: Asset List form"),
-   select everything in the editor, paste the new `AssetListForm.gs` over it,
-   and save. The project's script properties (the form, Sheet and folder IDs)
-   stay put.
+1. Open an Apps Script project owned by operations@ (the one that built the
+   form, or any other), select everything in the editor, paste the new
+   `AssetListForm.gs` over it, and save.
 2. Choose `rebuildAssetListForm` and click **Run**.
+
+The project remembers the form, Sheet and folder in its script properties.
+A project that didn't build the form has none, so the script looks in Drive
+for the form whose published link is `LIVE_FORM` (the link the crew has) and
+saves its IDs from then on. The log says "Found the live form in Drive" when
+it does that.
 
 It replaces every question on the same form, so the link people already have
 (forms.gle and the long one) keeps working. Answers given before the rebuild

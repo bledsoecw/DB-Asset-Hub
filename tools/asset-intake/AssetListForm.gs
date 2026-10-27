@@ -21,6 +21,10 @@
  * technology (one device per response).
  */
 var FOLDER_NAME = 'DB Asset Hub: Asset List';
+// The live form: the published ID behind the link the crew has
+// (https://forms.gle/52wUW5z9FH7ADtSH9). A project that didn't build the form
+// finds it in Drive by this, so any of the owner's projects can rebuild it.
+var LIVE_FORM = '1FAIpQLSevkymjLDrZlKMBGMx4ko-4u67PusECNv-nVvs0bpFW88KloA';
 var SPEC = {
  "title": "DB Asset Hub: Asset List",
  "description": "Start by choosing what you're entering: equipment, tools or technology. Each one asks only what fits. Equipment and technology: one item per response. Tools: up to 10 per response. After you submit, tap \"Submit another response\" for more. Skip anything you don't know; the office fills in the rest.",
@@ -897,16 +901,11 @@ var SPEC = {
 function buildAssetListForm() {
   logAccount_();
   var props = PropertiesService.getScriptProperties();
-  var existing = props.getProperty('FORM_ID');
-  if (existing) {
-    try {
-      var old = FormApp.openById(existing);
-      linkPrintable_(old);
-      report_(old, 'exists');
-      return;
-    } catch (e) {
-      props.deleteProperty('FORM_ID'); // the old form is gone: make a new one
-    }
+  var old = liveForm_(props);
+  if (old) {
+    linkPrintable_(old);
+    report_(old, 'exists');
+    return;
   }
   var folder = folder_();
   var form = FormApp.create(SPEC.title);
@@ -925,10 +924,12 @@ function buildAssetListForm() {
 function rebuildAssetListForm() {
   logAccount_();
   var props = PropertiesService.getScriptProperties();
-  var id = props.getProperty('FORM_ID');
-  if (!id) throw new Error('There is no form to rebuild in this script yet. Run buildAssetListForm instead.');
-  var form = FormApp.openById(id);
-  var sheetId = props.getProperty('SHEET_ID') || form.getDestinationId();
+  var form = liveForm_(props);
+  if (!form) {
+    throw new Error('Found no Asset List form in ' + Session.getEffectiveUser().getEmail() + "'s Drive. " +
+      'Run this signed in as the account that owns it, or run buildAssetListForm to make a new one.');
+  }
+  var sheetId = props.getProperty('SHEET_ID') || responseSheet_(form);
   var ss = SpreadsheetApp.openById(sheetId);
 
   // Keep what is already in: unlink the current responses tab and name it, so
@@ -950,6 +951,46 @@ function rebuildAssetListForm() {
   linkPrintable_(form);
   Logger.log(kept + ' earlier response(s) are in the tab "Before rebuild ' + stamp + '". New ones go to the newest tab.');
   report_(form, 'rebuilt');
+}
+
+// The form people already have the link to. The script properties remember it.
+// A project without them (it didn't build the form) looks in Drive for the form
+// whose published link holds LIVE_FORM, and remembers it from then on.
+function liveForm_(props) {
+  var id = props.getProperty('FORM_ID');
+  if (id) {
+    try { return FormApp.openById(id); } catch (e) { props.deleteProperty('FORM_ID'); } // gone: look for it
+  }
+  var forms = "mimeType = 'application/vnd.google-apps.form' and trashed = false";
+  var form = findLive_(DriveApp.searchFiles(forms + " and title = '" + SPEC.title + "'")) ||
+             findLive_(DriveApp.searchFiles(forms));
+  if (!form) return null;
+  props.setProperty('FORM_ID', form.getId());
+  var parents = DriveApp.getFileById(form.getId()).getParents();
+  if (parents.hasNext()) {
+    var parent = parents.next();
+    if (parent.getId() !== DriveApp.getRootFolder().getId()) props.setProperty('FOLDER_ID', parent.getId());
+  }
+  Logger.log('Found the live form in Drive and saved it to this project: ' + form.getEditUrl());
+  return form;
+}
+
+function findLive_(files) {
+  while (files.hasNext()) {
+    try {
+      var form = FormApp.openById(files.next().getId());
+      if (form.getPublishedUrl().indexOf(LIVE_FORM) !== -1) return form;
+    } catch (e) { /* a form this account can't edit */ }
+  }
+  return null;
+}
+
+// The Sheet the form answers into, or a new one in the folder if it has none.
+function responseSheet_(form) {
+  try { return form.getDestinationId(); } catch (e) { /* no destination */ }
+  var sheet = SpreadsheetApp.create(SPEC.title + ' (responses)');
+  DriveApp.getFileById(sheet.getId()).moveTo(folder_());
+  return sheet.getId();
 }
 
 function logAccount_() {
